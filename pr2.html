@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Smart Utility Toolkit</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI, sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#667eea,#764ba2);
+min-height:100vh;
+color:white;
+text-align:center;
+}
+
+h1{
+margin-top:35px;
+font-size:34px;
+}
+
+.dashboard{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:25px;
+max-width:950px;
+margin:40px auto;
+padding:20px;
+}
+
+.card{
+background:rgba(255,255,255,0.15);
+backdrop-filter:blur(10px);
+padding:25px;
+border-radius:15px;
+cursor:pointer;
+transition:0.3s;
+box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+.card:hover{
+transform:translateY(-7px);
+}
+
+.card p{
+font-size:14px;
+opacity:0.9;
+}
+
+.tool-page{
+display:none;
+margin-top:80px;
+}
+
+input,textarea{
+width:320px;
+padding:10px;
+border:none;
+border-radius:6px;
+margin-top:10px;
+}
+
+textarea{
+height:100px;
+}
+
+button{
+margin-top:15px;
+padding:10px 20px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+background:#ff9f43;
+color:white;
+font-weight:bold;
+transition:0.2s;
+}
+
+button:hover{
+transform:scale(1.05);
+}
+
+.back{
+background:#444;
+}
+
+.result-box{
+margin-top:20px;
+background:rgba(255,255,255,0.2);
+padding:15px;
+border-radius:10px;
+width:340px;
+margin-left:auto;
+margin-right:auto;
+font-size:16px;
+word-wrap:break-word;
+}
+
+pre{
+text-align:left;
+white-space:pre-wrap;
+}
+
+footer{
+margin-top:40px;
+opacity:0.8;
+}
+
+
+#face-container{
+display:flex;
+justify-content:center;
+margin-top:20px;
+}
+
+.face{
+width:120px;
+height:120px;
+background:#FFD93D;
+border-radius:50%;
+position:relative;
+box-shadow:0 10px 20px rgba(0,0,0,0.2);
+}
+
+.eye{
+width:30px;
+height:30px;
+background:white;
+border-radius:50%;
+position:absolute;
+top:35px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.eye:nth-child(1){
+left:25px;
+}
+
+.eye:nth-child(2){
+right:25px;
+}
+
+.pupil{
+width:12px;
+height:12px;
+background:black;
+border-radius:50%;
+position:absolute;
+}
+
+.mouth{
+width:50px;
+height:25px;
+border-bottom:5px solid black;
+border-radius:0 0 50px 50px;
+position:absolute;
+bottom:25px;
+left:50%;
+transform:translateX(-50%);
+}
+
+</style>
+
+<script>
+
+function openTool(id){
+document.getElementById("dashboard").style.display="none";
+document.getElementById(id).style.display="block";
+}
+
+function goBack(){
+
+document.getElementById("dashboard").style.display="grid";
+
+let tools=document.getElementsByClassName("tool-page");
+
+for(let i=0;i<tools.length;i++){
+tools[i].style.display="none";
+}
+
+}
+
+/* COPY FUNCTION */
+
+function copyText(id){
+let text=document.getElementById(id).innerText;
+navigator.clipboard.writeText(text);
+alert("Copied!");
+}
+
+/* PASSWORD GENERATOR */
+
+function generatePassword(){
+
+let chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+
+let password="";
+
+for(let i=0;i<12;i++){
+let randomIndex=Math.floor(Math.random()*chars.length);
+password+=chars[randomIndex];
+}
+
+document.getElementById("passwordResult").innerText=password;
+
+}
+
+/* TEXT TOOL */
+
+function countWords(){
+
+let text=document.getElementById("textInput").value;
+
+if(text.trim()===""){
+document.getElementById("textResult").innerText="Please enter some text";
+return;
+}
+
+let words=text.trim().split(/\s+/).filter(word=>word.length>0);
+
+let wordCount=words.length;
+
+let charCount=text.replace(/\s/g,"").length;
+
+document.getElementById("textResult").innerText=
+"Words: "+wordCount+" | Characters: "+charCount;
+
+}
+
+/* BASE64 */
+
+function encodeBase64(){
+
+let text=document.getElementById("baseInput").value;
+
+if(text.trim()===""){
+document.getElementById("baseResult").innerText="Please enter some text";
+return;
+}
+
+document.getElementById("baseResult").innerText=btoa(text);
+
+}
+
+function decodeBase64(){
+
+let text=document.getElementById("baseInput").value;
+
+if(text.trim()===""){
+document.getElementById("baseResult").innerText="Please enter some text";
+return;
+}
+
+try{
+document.getElementById("baseResult").innerText=atob(text);
+}
+catch{
+document.getElementById("baseResult").innerText="Invalid Base64 input";
+}
+
+}
+
+/* JSON FORMATTER */
+
+function formatJSON(){
+
+let text=document.getElementById("jsonInput").value;
+
+if(text.trim()===""){
+document.getElementById("jsonResult").innerText="Please enter JSON data";
+return;
+}
+
+try{
+
+let obj=JSON.parse(text);
+
+let formatted=JSON.stringify(obj,null,2);
+
+document.getElementById("jsonResult").innerText=formatted;
+
+}
+catch{
+
+document.getElementById("jsonResult").innerText="Invalid JSON format";
+
+}
+
+}
+
+/* QR GENERATOR */
+
+function generateQR(){
+
+let text=document.getElementById("qrInput").value;
+
+if(text.trim()===""){
+document.getElementById("qrResult").innerText="Please enter text or URL";
+return;
+}
+
+document.getElementById("qrResult").innerHTML="";
+
+new QRCode(document.getElementById("qrResult"),{
+text:text,
+width:200,
+height:200
+});
+
+}
+
+/* DOWNLOAD QR */
+
+function downloadQR(){
+
+let img=document.querySelector("#qrResult img");
+
+if(!img){
+alert("Generate QR first");
+return;
+}
+
+let link=document.createElement("a");
+
+link.href=img.src;
+
+link.download="qr-code.png";
+
+link.click();
+
+}
+
+/* URL SHORTENER */
+
+let urlDatabase={};
+
+function shortenURL(){
+
+let url=document.getElementById("urlInput").value.trim();
+
+if(url===""){
+document.getElementById("urlResult").innerText="Please enter a URL";
+return;
+}
+
+if(!url.startsWith("http://") && !url.startsWith("https://")){
+url="https://"+url;
+}
+
+let code=Math.random().toString(36).substring(2,8);
+
+urlDatabase[code]=url;
+
+let shortURL="short.ly/"+code;
+
+document.getElementById("urlResult").innerHTML=
+`<button onclick="openURL('${code}')">${shortURL}</button>`;
+
+}
+
+function openURL(code){
+
+let original=urlDatabase[code];
+
+if(original){
+window.open(original,"_blank");
+}
+
+}
+
+
+document.addEventListener("mousemove", function(e){
+
+moveEye("pupil1", e);
+moveEye("pupil2", e);
+
+});
+
+function moveEye(id, event){
+
+let pupil = document.getElementById(id);
+
+let rect = pupil.parentElement.getBoundingClientRect();
+
+let eyeX = rect.left + rect.width/2;
+let eyeY = rect.top + rect.height/2;
+
+let angle = Math.atan2(event.clientY - eyeY, event.clientX - eyeX);
+
+let radius = 6;
+
+let x = Math.cos(angle) * radius;
+let y = Math.sin(angle) * radius;
+
+pupil.style.transform = `translate(${x}px, ${y}px)`;
+
+}
+
+</script>
+
+</head>
+
+<body>
+
+<h1>Smart Utility Toolkit</h1>
+
+<div id="dashboard" class="dashboard">
+
+<div class="card" onclick="openTool('urlTool')">
+<h3>URL Shortener</h3>
+<p>Convert long links into short and easy-to-share URLs.</p>
+</div>
+
+<div class="card" onclick="openTool('qrTool')">
+<h3>QR Code Generator</h3>
+<p>Generate QR codes instantly from any link or text.</p>
+</div>
+
+<div class="card" onclick="openTool('passwordTool')">
+<h3>Password Generator</h3>
+<p>Create strong and secure passwords.</p>
+</div>
+
+<div class="card" onclick="openTool('textTool')">
+<h3>Text Tools</h3>
+<p>Word counter and character analyzer.</p>
+</div>
+
+<div class="card" onclick="openTool('jsonTool')">
+<h3>JSON Formatter</h3>
+<p>Beautify and validate JSON data.</p>
+</div>
+
+<div class="card" onclick="openTool('base64Tool')">
+<h3>Base64 Encoder</h3>
+<p>Encode or decode Base64 text.</p>
+</div>
+
+</div>
+
+<!-- PASSWORD -->
+
+<div id="passwordTool" class="tool-page">
+
+<h2>Password Generator</h2>
+
+<button onclick="generatePassword()">Generate Password</button>
+
+<div class="result-box">
+<p id="passwordResult">Your password will appear here</p>
+</div>
+
+<button onclick="copyText('passwordResult')">Copy</button>
+
+<br>
+
+<button class="back" onclick="goBack()">Back</button>
+
+</div>
+
+<!-- URL -->
+
+<div id="urlTool" class="tool-page">
+
+<h2>URL Shortener</h2>
+
+<input id="urlInput" placeholder="Paste your long URL">
+
+<br>
+
+<button onclick="shortenURL()">Generate Short URL</button>
+
+<div class="result-box">
+<p id="urlResult">Short link will appear here</p>
+</div>
+
+<button onclick="copyText('urlResult')">Copy</button>
+
+<br>
+
+<button class="back" onclick="goBack()">Back</button>
+
+</div>
+
+<!-- QR -->
+
+<div id="qrTool" class="tool-page">
+
+<h2>QR Code Generator</h2>
+
+<input id="qrInput" placeholder="Enter link or text">
+
+<br>
+
+<button onclick="generateQR()">Generate QR</button> <button onclick="downloadQR()">Download QR</button>
+
+<div class="result-box">
+<div id="qrResult"></div>
+</div>
+
+<br>
+
+<button class="back" onclick="goBack()">Back</button>
+
+</div>
+
+<!-- TEXT -->
+
+<div id="textTool" class="tool-page">
+
+<h2>Text Tools</h2>
+
+<textarea id="textInput" placeholder="Enter text"></textarea>
+
+<button onclick="countWords()">Word Count</button>
+
+<div class="result-box">
+<p id="textResult">Text analysis result will appear here</p>
+</div>
+
+<br>
+
+<button class="back" onclick="goBack()">Back</button>
+
+</div>
+
+<!-- JSON -->
+
+<div id="jsonTool" class="tool-page">
+
+<h2>JSON Formatter</h2>
+
+<textarea id="jsonInput" placeholder="Paste JSON here"></textarea>
+
+<br>
+
+<button onclick="formatJSON()">Format JSON</button>
+
+<div class="result-box">
+<pre id="jsonResult">Formatted JSON will appear here</pre>
+</div>
+
+<br>
+
+<button class="back" onclick="goBack()">Back</button>
+
+</div>
+
+<!-- BASE64 -->
+
+<div id="base64Tool" class="tool-page">
+
+<h2>Base64 Encoder / Decoder</h2>
+
+<textarea id="baseInput" placeholder="Enter text"></textarea>
+
+<br>
+
+<button onclick="encodeBase64()">Encode</button> <button onclick="decodeBase64()">Decode</button>
+
+<div class="result-box">
+<p id="baseResult">Result will appear here</p>
+</div>
+
+<button onclick="copyText('baseResult')">Copy</button>
+
+<br>
+
+<button class="back" onclick="goBack()">Back</button>
+
+</div>
+
+<footer>
+Smart Utility Toolkit © 2026
+</footer>
+
+<div id="face-container">
+  <div class="face">
+    <div class="eye">
+      <div class="pupil" id="pupil1"></div>
+    </div>
+    <div class="eye">
+      <div class="pupil" id="pupil2"></div>
+    </div>
+    <div class="mouth"></div>
+  </div>
+</div>
+
+</body>
+</html>
